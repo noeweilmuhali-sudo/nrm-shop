@@ -10,11 +10,11 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f0;color:#111}
 header{background:#111;color:#fff;padding:18px 6%;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 .logo{font-size:28px;font-weight:900;letter-spacing:2px}
 nav a{color:#fff;text-decoration:none;margin:0 12px;font-weight:700}
-.cart{background:#fff;color:#111;padding:10px 16px;border-radius:22px;font-weight:800;cursor:pointer}
+.cart{background:#fff;color:#111;padding:10px 16px;border-radius:22px;font-weight:800;cursor:pointer;border:0}
 .hero{padding:80px 6%;background:#d8ff3e;display:flex;align-items:center;justify-content:space-between;gap:30px}
 .hero h1{font-size:clamp(48px,8vw,100px);line-height:.85;text-transform:uppercase}
 .hero p{font-size:20px;margin:25px 0}
-.btn{display:inline-block;border:0;background:#111;color:#fff;padding:14px 22px;border-radius:5px;font-weight:800;cursor:pointer}
+.btn{display:inline-block;border:0;background:#111;color:#fff;padding:14px 22px;border-radius:5px;font-weight:800;cursor:pointer;text-decoration:none}
 .skate{font-size:130px;transform:rotate(-12deg)}
 section{padding:55px 6%}
 h2{font-size:36px;margin-bottom:25px}
@@ -31,21 +31,31 @@ h2{font-size:36px;margin-bottom:25px}
 .add:hover{background:#333}
 footer{background:#111;color:#fff;text-align:center;padding:35px}
 .modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:#fff;width:min(600px,100%);max-height:90vh;overflow:auto;border-radius:14px;padding:25px}
-.close{float:right;background:none;border:0;font-size:25px;cursor:pointer}
-.cart-item{display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #ddd;padding:14px 0}
+.modal-box{background:#fff;width:min(650px,100%);max-height:92vh;overflow:auto;border-radius:14px;padding:25px}
+.close{float:right;background:none;border:0;font-size:30px;cursor:pointer}
+.cart-item{display:grid;grid-template-columns:1fr auto;gap:15px;border-bottom:1px solid #ddd;padding:14px 0}
+.item-actions{display:flex;align-items:center;gap:8px}
+.qty-btn{width:34px;height:34px;border:1px solid #aaa;border-radius:6px;background:#f5f5f5;cursor:pointer;font-weight:900}
+.remove{border:0;background:none;color:#b00020;cursor:pointer;font-weight:700;margin-left:8px}
 .total{font-size:24px;font-weight:900;margin:20px 0}
-input{width:100%;padding:13px;margin:7px 0 12px;border:1px solid #bbb;border-radius:6px}
+input,textarea,select{width:100%;padding:13px;margin:7px 0 12px;border:1px solid #bbb;border-radius:6px;font:inherit}
+label{font-weight:700;display:block}
 .empty{text-align:center;padding:30px}
-@media(max-width:700px){nav{display:none}.hero{padding:55px 6%}.skate{font-size:75px}section{padding:40px 5%}}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{background:#f4f4f0;padding:12px;border-radius:8px;margin-bottom:15px;font-size:14px}
+.success{text-align:center;padding:20px}
+.order-box{background:#f4f4f0;padding:15px;border-radius:8px;margin:15px 0;text-align:left}
+@media(max-width:700px){
+ nav{display:none}.hero{padding:55px 6%}.skate{font-size:75px}
+ section{padding:40px 5%}.form-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">NRM SHOP</div>
   <nav><a href="#home">Home</a><a href="#products">Products</a><a href="#about">About</a></nav>
-  <button class="cart" onclick="openCart()">🛒 Cart (<span id="count">0</span>)</button>
+  <button class="cart" type="button" onclick="openCart()">🛒 Cart (<span id="count">0</span>)</button>
 </header>
 
 <main>
@@ -61,79 +71,222 @@ input{width:100%;padding:13px;margin:7px 0 12px;border:1px solid #bbb;border-rad
 <section id="products">
   <h2>Shop NRM</h2>
   <div class="filters">
-    <button class="filter active" onclick="filterProducts('all',this)">All</button>
-    <button class="filter" onclick="filterProducts('skate',this)">Skateboard</button>
-    <button class="filter" onclick="filterProducts('clothes',this)">Clothing</button>
-    <button class="filter" onclick="filterProducts('accessories',this)">Accessories</button>
+    <button class="filter active" type="button" onclick="filterProducts('all',this)">All</button>
+    <button class="filter" type="button" onclick="filterProducts('skate',this)">Skateboard</button>
+    <button class="filter" type="button" onclick="filterProducts('clothes',this)">Clothing</button>
+    <button class="filter" type="button" onclick="filterProducts('accessories',this)">Accessories</button>
   </div>
   <div class="grid" id="grid"></div>
 </section>
 
 <section id="about">
   <h2>NRM SHOP</h2>
-  <p>Built for skaters and streetwear lovers. Choose your gear, add it to your cart, and get ready to ride.</p>
+  <p>Built for skaters and streetwear lovers. Choose your gear, add it to your cart, and check out in a few steps.</p>
 </section>
 </main>
 
 <footer>© 2026 NRM SHOP • Skate & Streetwear</footer>
 
-<div class="modal" id="modal">
- <div class="modal-box">
-   <button class="close" onclick="closeCart()">×</button>
-   <h2>Your Cart</h2>
-   <div id="cartItems"></div>
-   <div class="total">Total: ₱<span id="total">0</span></div>
-   <button class="btn" style="width:100%" onclick="checkout()">CHECKOUT</button>
- </div>
+<!-- CART -->
+<div class="modal" id="cartModal">
+  <div class="modal-box">
+    <button class="close" type="button" onclick="closeCart()">×</button>
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <div class="total">Total: ₱<span id="total">0</span></div>
+    <button class="btn" style="width:100%" type="button" onclick="showCheckout()">CHECKOUT</button>
+  </div>
+</div>
+
+<!-- CHECKOUT -->
+<div class="modal" id="checkoutModal">
+  <div class="modal-box">
+    <button class="close" type="button" onclick="closeCheckout()">×</button>
+    <h2>Checkout</h2>
+    <div class="note">Please enter your delivery details. Your order summary will be shown before you place the order.</div>
+
+    <form id="checkoutForm">
+      <div class="form-grid">
+        <div>
+          <label for="name">Full Name *</label>
+          <input id="name" name="name" required maxlength="80" autocomplete="name">
+        </div>
+        <div>
+          <label for="phone">Phone Number *</label>
+          <input id="phone" name="phone" required maxlength="30" autocomplete="tel">
+        </div>
+      </div>
+
+      <label for="address">Delivery Address *</label>
+      <textarea id="address" name="address" rows="3" required maxlength="300" autocomplete="street-address"></textarea>
+
+      <label for="payment">Payment Method *</label>
+      <select id="payment" name="payment" required>
+        <option value="">Choose payment method</option>
+        <option>Cash on Delivery</option>
+        <option>GCash</option>
+        <option>Bank Transfer</option>
+      </select>
+
+      <label for="notes">Order Notes (optional)</label>
+      <textarea id="notes" name="notes" rows="2" maxlength="200" placeholder="Example: Please call before delivery"></textarea>
+
+      <div id="checkoutSummary" class="order-box"></div>
+      <button class="btn" style="width:100%" type="submit">PLACE ORDER</button>
+    </form>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="modal" id="successModal">
+  <div class="modal-box success">
+    <h2>🎉 Order Received!</h2>
+    <p id="successText"></p>
+    <div id="successOrder" class="order-box"></div>
+    <button class="btn" type="button" onclick="closeSuccess()">DONE</button>
+  </div>
 </div>
 
 <script>
 const products=[
- {name:"NRM Classic Deck",price:1850,cat:"skate",icon:"🛹"},
- {name:"Street Trucks Set",price:1250,cat:"skate",icon:"⚙️"},
- {name:"Pro Skate Wheels",price:950,cat:"skate",icon:"⭕"},
- {name:"NRM Bearings",price:550,cat:"skate",icon:"🔩"},
- {name:"NRM Oversized Tee",price:699,cat:"clothes",icon:"👕"},
- {name:"NRM Skate Hoodie",price:1299,cat:"clothes",icon:"🧥"},
- {name:"NRM Cargo Pants",price:1099,cat:"clothes",icon:"👖"},
- {name:"NRM Snapback",price:499,cat:"accessories",icon:"🧢"},
- {name:"NRM Skate Bag",price:899,cat:"accessories",icon:"🎒"}
+ {id:1,name:"NRM Classic Deck",price:1850,cat:"skate",icon:"🛹"},
+ {id:2,name:"Street Trucks Set",price:1250,cat:"skate",icon:"⚙️"},
+ {id:3,name:"Pro Skate Wheels",price:950,cat:"skate",icon:"⭕"},
+ {id:4,name:"NRM Bearings",price:550,cat:"skate",icon:"🔩"},
+ {id:5,name:"NRM Oversized Tee",price:699,cat:"clothes",icon:"👕"},
+ {id:6,name:"NRM Skate Hoodie",price:1299,cat:"clothes",icon:"🧥"},
+ {id:7,name:"NRM Cargo Pants",price:1099,cat:"clothes",icon:"👖"},
+ {id:8,name:"NRM Snapback",price:499,cat:"accessories",icon:"🧢"},
+ {id:9,name:"NRM Skate Bag",price:899,cat:"accessories",icon:"🎒"}
 ];
-let cart=[];
-function money(n){return n.toLocaleString('en-PH')}
+
+let cart=JSON.parse(localStorage.getItem("nrmCart")||"[]");
+
+function money(n){return Number(n).toLocaleString("en-PH",{minimumFractionDigits:0,maximumFractionDigits:0})}
+function saveCart(){localStorage.setItem("nrmCart",JSON.stringify(cart))}
+function cartCount(){return cart.reduce((sum,item)=>sum+item.qty,0)}
+function cartTotal(){return cart.reduce((sum,item)=>sum+(item.price*item.qty),0)}
+function updateCount(){document.getElementById("count").textContent=cartCount()}
+
 function render(list=products){
- document.getElementById('grid').innerHTML=list.map((p,i)=>`
+ document.getElementById("grid").innerHTML=list.map(p=>`
  <article class="card">
    <div class="pic">${p.icon}</div>
-   <div class="info"><h3>${p.name}</h3><div class="price">₱${money(p.price)}</div>
-   <button class="add" onclick="addToCart(${products.indexOf(p)})">ADD TO CART</button></div>
- </article>`).join('');
+   <div class="info">
+     <h3>${p.name}</h3>
+     <div class="price">₱${money(p.price)}</div>
+     <button class="add" type="button" onclick="addToCart(${p.id})">ADD TO CART</button>
+   </div>
+ </article>`).join("");
 }
+
 function filterProducts(cat,btn){
- document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
- render(cat==='all'?products:products.filter(p=>p.cat===cat));
+ document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));
+ btn.classList.add("active");
+ render(cat==="all"?products:products.filter(p=>p.cat===cat));
 }
-function addToCart(i){cart.push(products[i]);updateCount();alert(products[i].name+" added to cart!")}
-function updateCount(){document.getElementById('count').textContent=cart.length}
+
+function addToCart(id){
+ const product=products.find(p=>p.id===id);
+ const existing=cart.find(p=>p.id===id);
+ if(existing){existing.qty+=1}else{cart.push({...product,qty:1})}
+ saveCart(); updateCount();
+ alert(product.name+" added to cart!");
+}
+
+function changeQty(id,amount){
+ const item=cart.find(p=>p.id===id);
+ if(!item)return;
+ item.qty=Math.max(1,item.qty+amount);
+ saveCart(); updateCount(); openCart();
+}
+
+function removeItem(id){
+ cart=cart.filter(p=>p.id!==id);
+ saveCart(); updateCount(); openCart();
+}
+
 function openCart(){
- document.getElementById('modal').style.display='flex';
- const el=document.getElementById('cartItems');
- if(!cart.length){el.innerHTML='<div class="empty">Your cart is empty.</div>';document.getElementById('total').textContent='0';return}
- el.innerHTML=cart.map((p,i)=>`<div class="cart-item"><span>${p.icon} ${p.name}</span><b>₱${money(p.price)} <button onclick="removeItem(${i})">✕</button></b></div>`).join('');
- document.getElementById('total').textContent=money(cart.reduce((s,p)=>s+p.price,0));
+ document.getElementById("cartModal").style.display="flex";
+ const el=document.getElementById("cartItems");
+ if(!cart.length){
+   el.innerHTML='<div class="empty">Your cart is empty.<br><br>Add some NRM gear first.</div>';
+ }else{
+   el.innerHTML=cart.map(item=>`
+    <div class="cart-item">
+      <div><strong>${item.icon} ${item.name}</strong><br>
+      <small>₱${money(item.price)} each</small></div>
+      <div class="item-actions">
+        <button class="qty-btn" type="button" onclick="changeQty(${item.id},-1)">−</button>
+        <strong>${item.qty}</strong>
+        <button class="qty-btn" type="button" onclick="changeQty(${item.id},1)">+</button>
+        <button class="remove" type="button" onclick="removeItem(${item.id})">Remove</button>
+      </div>
+    </div>`).join("");
+ }
+ document.getElementById("total").textContent=money(cartTotal());
 }
-function removeItem(i){cart.splice(i,1);updateCount();openCart()}
-function closeCart(){document.getElementById('modal').style.display='none'}
-function checkout(){
- if(!cart.length){alert('Your cart is empty.');return}
- const name=prompt('Enter your name:');
- if(!name)return;
- const address=prompt('Enter your delivery address:');
- if(!address)return;
- alert('Thank you, '+name+'! Your NRM SHOP order has been received.');
- cart=[];updateCount();closeCart();
+
+function closeCart(){document.getElementById("cartModal").style.display="none"}
+
+function showCheckout(){
+ if(!cart.length){alert("Your cart is empty.");return}
+ closeCart();
+ document.getElementById("checkoutSummary").innerHTML=
+   "<strong>Order summary</strong><br>"+
+   cart.map(i=>`${i.icon} ${i.name} × ${i.qty} — ₱${money(i.price*i.qty)}`).join("<br>")+
+   `<hr style="margin:12px 0"><strong>Total: ₱${money(cartTotal())}</strong>`;
+ document.getElementById("checkoutModal").style.display="flex";
 }
+
+function closeCheckout(){document.getElementById("checkoutModal").style.display="none"}
+
+document.getElementById("checkoutForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ if(!cart.length){alert("Your cart is empty.");closeCheckout();return}
+
+ const data=new FormData(this);
+ const name=String(data.get("name")).trim();
+ const phone=String(data.get("phone")).trim();
+ const address=String(data.get("address")).trim();
+ const payment=String(data.get("payment")).trim();
+
+ if(name.length<2 || phone.length<7 || address.length<8 || !payment){
+   alert("Please complete all required checkout fields.");
+   return;
+ }
+
+ const orderNo="NRM-"+Date.now().toString().slice(-8);
+ const total=cartTotal();
+
+ document.getElementById("successText").textContent=
+   `Thank you, ${name}! Your order ${orderNo} has been recorded on this device.`;
+
+ document.getElementById("successOrder").innerHTML=
+   `<strong>Order: ${orderNo}</strong><br>
+    Total: ₱${money(total)}<br>
+    Payment: ${payment}<br>
+    Delivery: ${address}<br>
+    Contact: ${phone}`;
+
+ cart=[];
+ saveCart();
+ updateCount();
+ this.reset();
+ closeCheckout();
+ document.getElementById("successModal").style.display="flex";
+});
+
+function closeSuccess(){document.getElementById("successModal").style.display="none"}
+
+window.addEventListener("click",e=>{
+ if(e.target===document.getElementById("cartModal"))closeCart();
+ if(e.target===document.getElementById("checkoutModal"))closeCheckout();
+ if(e.target===document.getElementById("successModal"))closeSuccess();
+});
+
 render();
+updateCount();
 </script>
 </body>
 </html>
